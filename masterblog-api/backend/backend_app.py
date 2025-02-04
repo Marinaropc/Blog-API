@@ -31,6 +31,7 @@ POSTS = [
 @app.route('/api/posts', methods=['GET', 'POST'])
 @limiter.limit("10/minute")
 def get_posts():
+    """Get all posts or create a new post"""
     if request.method == 'GET':
         return jsonify(POSTS)
     elif request.method == 'POST':
@@ -52,6 +53,7 @@ def get_posts():
         })
         return jsonify(POSTS)
 
+
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])
 def delete(post_id):
     """Delete a blog post by ID."""
@@ -65,8 +67,10 @@ def delete(post_id):
 
     return jsonify({"message": "Post deleted successfully"}), 200
 
+
 @app.route('/api/posts/<int:post_id>', methods=['PUT'])
 def update(post_id):
+    """Update a blog post by ID."""
     global POSTS
     post_to_update = next((post for post in POSTS if post['id'] == post_id), None)
     if post_to_update is None:
@@ -83,8 +87,10 @@ def update(post_id):
         "content": post_to_update['content']
     }), 200
 
+
 @app.route('/api/posts/search', methods=['GET'])
 def search_by_title():
+    """Search for posts by title or content."""
     search_parameter = request.args.get('query', '').strip().lower()
     matching_posts = [post for post in POSTS if search_parameter in
                       post['title'].lower() or search_parameter in
@@ -94,8 +100,10 @@ def search_by_title():
     else:
         return jsonify({"error": "Post not found "}), 404
 
+
 @app.route('/api/posts', methods=['GET'])
 def get_sorted_posts():
+    """Get all posts sorted by title or content."""
     sort_by = request.args.get('sort', '').strip().lower()
     direction = request.args.get('direction', 'asc').strip().lower()
 
