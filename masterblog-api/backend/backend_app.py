@@ -12,7 +12,7 @@ swagger_ui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
     config={
-        'app_name': 'Masterblog API' # (3) You can change this if you like
+        'app_name': 'Masterblog API' #
     }
 )
 
@@ -33,7 +33,18 @@ POSTS = [
 def get_posts():
     """Get all posts or create a new post"""
     if request.method == 'GET':
-        return jsonify(POSTS)
+        sort_by = request.args.get('sort', '').strip().lower()
+        direction = request.args.get('direction', 'asc').strip().lower()
+        valid_sort_fields = {'title', 'content'}
+        reverse_order = direction == 'desc'
+
+        if sort_by in valid_sort_fields:
+            sorted_posts = sorted(POSTS, key=lambda post:
+            (post[sort_by] or "").lower(), reverse=reverse_order)
+        else:
+            sorted_posts = POSTS
+        return jsonify(sorted_posts)
+
     elif request.method == 'POST':
         data = request.get_json()
         if not data:
@@ -89,12 +100,15 @@ def update(post_id):
 
 
 @app.route('/api/posts/search', methods=['GET'])
-def search_by_title():
+def search_post():
     """Search for posts by title or content."""
-    search_parameter = request.args.get('query', '').strip().lower()
-    matching_posts = [post for post in POSTS if search_parameter in
-                      post['title'].lower() or search_parameter in
-                      post['content'].lower()]
+    title_query = request.args.get('title', '').strip().lower()
+    content_query = request.args.get('content', '').strip().lower()
+    matching_posts = [
+        post for post in POSTS
+        if (title_query and title_query in post['title'].lower()) or
+           (content_query and content_query in post['content'].lower())
+    ]
     if matching_posts:
         return jsonify(matching_posts)
     else:
